@@ -1,11 +1,6 @@
 package com.company;
 
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Random;
-
 public class CommunicationNodeA {
     private final String communicationMode;
     private final String AesKey;
@@ -89,7 +84,7 @@ public class CommunicationNodeA {
         return null;
     }
 
-    public String encryptOFB(String mesaj){
+    public char[] encryptOFB(String mesaj){
         String encryptedIV= iV;                        //vector de initializare
         char[] encrypt= new char[mesaj.length()];
 
@@ -105,23 +100,7 @@ public class CommunicationNodeA {
         }
 
         System.out.println(encrypt);
-
-        encryptedIV= iV;
-        char[] decrypt= new char[mesaj.length()];
-
-        for(int i=0;i< mesaj.length(); i+=blockSize){
-            encryptedIV= AES.encrypt(encryptedIV,AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
-            int k=0;
-            for (int j = i; j < i+blockSize && j< mesaj.length() ; j++) {
-                assert encryptedIV != null;
-                decrypt[j] = (char) (encrypt[j] ^ encryptedIV.charAt(k));
-                k++;
-            }
-        }
-        System.out.println(decrypt);
-
-
-        return null;
+        return encrypt;
     }
 
     /*

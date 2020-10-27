@@ -24,7 +24,6 @@ public class Main {
           nodeA.sendMessageToNodeB("un mesaj oarecare");
           */
         //nodeA.encryptOFB("qwertyuiopasdfghjkl");
-        //nodeB.decryptOFB(nodeA.encryptOFB("12345678901234"));
-        nodeA.encryptOFB("qwertyuiopasdfghjkllll");
+        nodeB.decryptOFB(nodeA.encryptOFB("12345678901234kkkkkkk"));
     }
 }

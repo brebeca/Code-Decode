@@ -65,7 +65,22 @@ public class CommunicationNodeB {
         }
     }
 
-  
+    public String decryptOFB(char[] mesaj){
+        String encryptedIV= iV;
+        char[] decrypt= new char[mesaj.length];
+
+        for(int i=0;i< mesaj.length; i+=blockSizeOFB){
+            encryptedIV= AES.encrypt(encryptedIV,AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
+            int k=0;
+            for (int j = i; j < i+blockSizeOFB && j< mesaj.length ; j++) {
+                assert encryptedIV != null;
+                decrypt[j] = (char) (mesaj[j] ^ encryptedIV.charAt(k));
+                k++;
+            }
+        }
+        System.out.println(decrypt);
+        return String.valueOf(decrypt);
+    }
 
     public void reciveMessage(String mesaj){
         System.out.println("Nodul B a primit mesajul : "+mesaj+ " si a decriptat : "+decryptECB(mesaj));
