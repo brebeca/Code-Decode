@@ -1,6 +1,8 @@
 package com.company;
 
 
+import java.util.Arrays;
+
 public class CommunicationNodeA {
     private final String communicationMode;
     private final String AesKey;
@@ -41,9 +43,18 @@ public class CommunicationNodeA {
     }
 
     public void sendMessageToNodeB(String mesaj){
-        String criptat=encryptECB(mesaj);
-        System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+criptat );
-        nodeB.reciveMessage(criptat);
+
+        if(communicationMode.equals("ECB")) {
+            String criptat = encryptECB(mesaj);
+            System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+criptat );
+            nodeB.reciveMessage(criptat);
+        }
+        if(communicationMode.equals("OFB")) {
+            char[] criptat = encryptOFB(mesaj);
+            System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+ new String(criptat));
+            nodeB.reciveMessage(new String(criptat));
+        }
+
     }
 
 
@@ -84,6 +95,14 @@ public class CommunicationNodeA {
         return null;
     }
 
+    /**
+     * se parcurge mesajul si se imparte in blocuri de marimi egale
+     * la fiacare bloc de reinitializeaza vectorul initializare
+     * pt fiecare bloc se face XOR intre caracterul din mesaj si caracterul din vector
+     * si rezultatul se memoreaza in vectorul encrypt
+     * @param mesaj
+     * @return
+     */
     public char[] encryptOFB(String mesaj){
         String encryptedIV= iV;                        //vector de initializare
         char[] encrypt= new char[mesaj.length()];
@@ -99,43 +118,31 @@ public class CommunicationNodeA {
             }
         }
 
-        System.out.println(encrypt);
         return encrypt;
     }
 
-    /*
-    public String encryptOFB(String mesaj){
-        String encryptedIV= iV;                        //vector de initializare
-        char[] encrypt= new char[mesaj.length()];
-
-        for(int i=0;i< mesaj.length(); i+=blockSize){
-            encryptedIV= AES.encrypt(encryptedIV,AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
-            int k=0;
-            for (int j = i; j < mesaj.length(); j++) {
-                assert encryptedIV != null;
-                encrypt[j] = (char) (mesaj.charAt(j) ^ encryptedIV.charAt(k));
+    public String encryptCBC(String mesaj){;                        //vector de initializare
+        StringBuilder encrypt= new StringBuilder();
+        String newIv=iV;
+        
+        for(int i=0;i< mesaj.length(); i+=blockSize) {
+            int k = 0;
+            StringBuilder encryptedBlock= new StringBuilder();
+            for (int j = i; j < i+ blockSize && j< mesaj.length(); j++) {
+                encryptedBlock.append(
+                        (char) (mesaj.charAt(j) ^ newIv.charAt(k)) // facem XOR intre blocul de mesaj si vectorul de initializare
+                );
                 k++;
             }
+            newIv=encryptedBlock.toString();
+            encrypt.append(encryptedBlock.toString());
         }
-        System.out.println("Encrypted : "+ Arrays.toString(encrypt));
 
-        encryptedIV= iV;
-        char[] decrypt= new char[mesaj.length()];
-        for(int i=0;i< mesaj.length(); i+=blockSize){
-            encryptedIV= AES.encrypt(encryptedIV,AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
-            int k=0;
-            for (int j = i; j < mesaj.length(); j++) {
-                assert encryptedIV != null;
-                decrypt[j] = (char) (encrypt[i] ^ encryptedIV.charAt(k));
-                k++;
-            }
-        }
-        System.out.println(decrypt);
-
-
-        return null;
+        System.out.println(encrypt.toString());
+        return encrypt.toString();
     }
-    */
+
+
 
 
 }

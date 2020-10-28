@@ -65,6 +65,14 @@ public class CommunicationNodeB {
         }
     }
 
+    /**
+     * se itereaza prin mesaj si se selecteaza blocuri de lungimi egale
+     * la fiecare pas se cripteaza vectorul de initializare encryptedIV din nou
+     * se itereaza pe fiecare bloc si se face XOR caracter cu caracter intre bloc si vectorul de initializare encryptedIV
+     * si se memoreaza rezultatul caracter cu caracter in array-ul decrypt
+     * @param mesaj mesajul ce va fi decriptat
+     * @return mesajul decriptat
+     */
     public String decryptOFB(char[] mesaj){
         String encryptedIV= iV;
         char[] decrypt= new char[mesaj.length];
@@ -78,13 +86,36 @@ public class CommunicationNodeB {
                 k++;
             }
         }
-        System.out.println(decrypt);
         return String.valueOf(decrypt);
     }
 
+    /**
+     * se apeleaza functia de decriptare specifaca modului
+     * se afiseaza rezultatul
+     * @param mesaj mesajul criptat
+     */
     public void reciveMessage(String mesaj){
-        System.out.println("Nodul B a primit mesajul : "+mesaj+ " si a decriptat : "+decryptECB(mesaj));
+        String decrypted="";
+        if(communicationMode.equals("ECB")) {
+            decrypted=decryptECB(mesaj);
+          }
+        if(communicationMode.equals("OFB")) {
+            decrypted=decryptOFB(convertToArrayOfChar(mesaj));
+           }
+        System.out.println("Nodul B a primit mesajul : " +"\u001B[34m"+mesaj+"\u001B[0m");
+        System.out.println("  A decriptat : "+"\u001B[31m"+decrypted +"\u001B[0m");
+        System.out.println("  Folosit  modul :"+"\u001B[33m"+communicationMode+"\u001B[0m");
+    }
+
+    public char[] convertToArrayOfChar(String mesaj){
+        char[] converted= new char[mesaj.length()];
+        for(int i=0; i<mesaj.length();i++){
+            converted[i]=mesaj.charAt(i);
+        }
+        return converted;
     }
 
 
 }
+
+
