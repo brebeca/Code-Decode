@@ -16,9 +16,18 @@ public class CommunicationNodeB {
     CommunicationNodeB( KeyManager keyManager, String iV){
         this.keyManager=keyManager;
         this.AesKey=keyManager.getASE_key();
-        this.blockSizeECB=24;
-        this.blockSizeOFB=15;
+        this.blockSizeECB=44;
+        this.blockSizeOFB=16;
         this.iV=iV;
+    }
+
+    /**
+     *• Nodul B, la primirea mesajului de la nodul A, cere nodului KM cheia
+     * @param communicationMode
+     */
+    public void setCommunicationMode(String communicationMode){
+        this.communicationMode=communicationMode;
+        askForCommunicaionKey();
     }
 
     /**
@@ -35,11 +44,7 @@ public class CommunicationNodeB {
         this.communicationNodeA=communicationNodeA;
     }
 
-    /**
-     *• Nodul B, la primirea mesajului de la nodul A, cere nodului KM cheia
-     * @param communicationMode
-     */
-    public void setCommunicationMode(String communicationMode){ this.communicationMode=communicationMode; askForCommunicaionKey();}
+
 
     /**
      * se parcurge mesajul primit si se imparte in blocuri de lungime fixa
@@ -55,7 +60,7 @@ public class CommunicationNodeB {
 
             while (mesaj.length() >= i + blockSizeECB) {
                 block = new StringBuilder(mesaj.substring(i, i + blockSizeECB));
-                decrypted.append(AES.decrypt(block.toString(), AesKey));
+                decrypted.append(AES.decrypt(block.toString(), communicationKey));
                 i = i + blockSizeECB;
             }
             return decrypted.toString();
@@ -78,7 +83,7 @@ public class CommunicationNodeB {
         char[] decrypt= new char[mesaj.length];
 
         for(int i=0;i< mesaj.length; i+=blockSizeOFB){
-            encryptedIV= AES.encrypt(encryptedIV,AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
+            encryptedIV= AES.encrypt(encryptedIV,communicationKey);//se cripteaza vectorul de initializare precedent cu cheia AES
             int k=0;
             for (int j = i; j < i+blockSizeOFB && j< mesaj.length ; j++) {
                 assert encryptedIV != null;

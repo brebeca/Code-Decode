@@ -1,7 +1,9 @@
 package com.company;
 
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 public class CommunicationNodeA {
     private final String communicationMode;
@@ -17,7 +19,7 @@ public class CommunicationNodeA {
         this.keyManager=keyManager;
         this.AesKey=keyManager.getASE_key();
         this.nodeB = nodeB;
-        this.blockSize=15;
+        this.blockSize=16;
         this.iV=iV;
     }
 
@@ -38,23 +40,35 @@ public class CommunicationNodeA {
         nodeB.setCommunicationMode(communicationMode);
     }
 
+
     public void communicationStartNotify(){
         System.out.println("Nodul B a notificat nodul A ca comunicarea poate incape");
+        sendMessageToNodeB();
     }
 
-    public void sendMessageToNodeB(String mesaj){
-
-        if(communicationMode.equals("ECB")) {
-            String criptat = encryptECB(mesaj);
-            System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+criptat );
-            nodeB.reciveMessage(criptat);
+    public void sendMessageToNodeB(){
+        try {
+            StringBuilder mesaj= new StringBuilder();
+            File myObj = new File("src"+File.separator+"com"+File.separator+"company"+File.separator+"de_aici_citeste_nodulA");
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                mesaj.append(myReader.nextLine());
+            }
+            myReader.close();
+            if(communicationMode.equals("ECB")) {
+                String criptat = encryptECB(mesaj.toString());
+                System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+criptat );
+                nodeB.reciveMessage(criptat);
+            }
+            if(communicationMode.equals("OFB")) {
+                char[] criptat = encryptOFB(mesaj.toString());
+                System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+ new String(criptat));
+                nodeB.reciveMessage(new String(criptat));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
         }
-        if(communicationMode.equals("OFB")) {
-            char[] criptat = encryptOFB(mesaj);
-            System.out.println("Nodul A cripteaza mesajul : "+mesaj +" si trimte mesajul: "+ new String(criptat));
-            nodeB.reciveMessage(new String(criptat));
-        }
-
     }
 
 
@@ -74,7 +88,7 @@ public class CommunicationNodeA {
             //impartim in blocuri de lungime fixa si criptam
             while(mesaj.length()>=i+blockSize){
                 block = new StringBuilder(mesaj.substring(i, i + blockSize));
-                crypted.append(AES.encrypt(block.toString(), AesKey));
+                crypted.append(AES.encrypt(block.toString(),communicationKey ));
                 i=i+blockSize;
             }
 
@@ -83,7 +97,7 @@ public class CommunicationNodeA {
                 block = new StringBuilder(mesaj.substring(i));
                 while (block.length()!=blockSize)
                     block.append(" ");
-                crypted.append(AES.encrypt(block.toString(), AesKey));
+                crypted.append(AES.encrypt(block.toString(), communicationKey));
 
             }
             return crypted.toString();
@@ -108,7 +122,7 @@ public class CommunicationNodeA {
         char[] encrypt= new char[mesaj.length()];
 
         for(int i=0;i< mesaj.length(); i+=blockSize) {
-            encryptedIV = AES.encrypt(encryptedIV, AesKey);//se cripteaza vectorul de initializare precedent cu cheia AES
+            encryptedIV = AES.encrypt(encryptedIV, communicationKey);//se cripteaza vectorul de initializare precedent cu cheia AES
             int k = 0;
             for (int j = i; j < i+ blockSize && j< mesaj.length(); j++) {
                 assert encryptedIV != null;
@@ -120,28 +134,6 @@ public class CommunicationNodeA {
 
         return encrypt;
     }
-
-    public String encryptCBC(String mesaj){;                        //vector de initializare
-        StringBuilder encrypt= new StringBuilder();
-        String newIv=iV;
-        
-        for(int i=0;i< mesaj.length(); i+=blockSize) {
-            int k = 0;
-            StringBuilder encryptedBlock= new StringBuilder();
-            for (int j = i; j < i+ blockSize && j< mesaj.length(); j++) {
-                encryptedBlock.append(
-                        (char) (mesaj.charAt(j) ^ newIv.charAt(k)) // facem XOR intre blocul de mesaj si vectorul de initializare
-                );
-                k++;
-            }
-            newIv=encryptedBlock.toString();
-            encrypt.append(encryptedBlock.toString());
-        }
-
-        System.out.println(encrypt.toString());
-        return encrypt.toString();
-    }
-
 
 
 
